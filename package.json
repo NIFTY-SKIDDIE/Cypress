@@ -4,7 +4,11 @@
   "description": "Cypress e2e automation",
   "main": "index.js",
   "scripts": {
-    "test": "cy"
+    "test": "cypress run --headless",
+    "test:chrome": "cypress run --headless --browser chrome",
+    "test:firefox": "cypress run --headless --browser firefox",
+    "test:edge": "cypress run --headless --browser edge",
+    "cy:open": "cypress open"
   },
   "author": "",
   "license": "ISC",

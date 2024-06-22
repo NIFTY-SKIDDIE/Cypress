@@ -1,18 +1,16 @@
+// demo_spec.cy.js
+
 import 'cypress-xpath';
 
 describe('Verify "Before & after" image creation flow', () => {
-
   beforeEach(() => {
-    // Visit the login page and login
     cy.visit('https://app.companycam.com/users/sign_in');
     cy.xpath('//*[@id="user_email_address"]').type('contact+test@samshapira.com');
     cy.xpath('//*[@id="user_password"]').type('100321AbCd$');
     cy.get('input[value="Sign In"]').click();
-
-    // Click on the project
+    
+    //Navigate to the project page with photos
     cy.get('.projects-list__project').first().click();
-
-    // Wait for the redirect to the project page with photos
     cy.url().should('include', '/projects/65853341/photos');
   });
 
@@ -41,43 +39,38 @@ describe('Verify "Before & after" image creation flow', () => {
     // Assert that the button is enabled again
     cy.get('button.sc-eAKtBH.eizVws').should('not.have.attr', 'disabled');
 
-    // Get the initial number of rows
-    let initialRowCount;
-    let initialLatestRowImageCount;
+    // Get the initial number of images
+    let initialImageCount;
 
-    cy.xpath("(//div[@class='sc-LzMkU kRyFGe'])").then($rows => {
-      initialRowCount = $rows.length;
-
-      // Get the initial number of images in the latest row
-      cy.get('.sc-LzMkU.kRyFGe').last().then($lastRow => {
-        initialLatestRowImageCount = $lastRow.find('.sc-LzMDr.gNjBec').length;
-      });
+    cy.xpath(`//div[@data-testid='assetfeed__asset-thumbnail']`).then($images => {
+      initialImageCount = $images.length;
+      cy.log(`Initial Image Count: ${initialImageCount}`);
     });
 
     // Click on the button to create a "before and after" image
-    cy.xpath("//div[@class='sc-LzMBB guKaWq']/button[1]").first().click();
+    cy.xpath("(//button[@type='button'])[15]").first().click();
 
     // Save the new image
     cy.xpath("//a[normalize-space()='Save']").first().click();
 
-    // Wait for the new image row/image to be added
+    // Wait for the new image to be added
     cy.wait(3000); 
 
-    // Get the new number of rows
-    cy.xpath("(//div[@class='sc-LzMkU kRyFGe'])").then($rows => {
-      const newRowCount = $rows.length;
+    // Get the new number of images after creating the image
+    cy.xpath(`//div[@data-testid='assetfeed__asset-thumbnail']`).then($images => {
+      const newImageCount = $images.length;
+      cy.log(`New Image Count: ${newImageCount}`);
 
-      // Get the new number of images in the latest row
-      cy.get('.sc-LzMkU.kRyFGe').last().then($lastRow => {
-        const newLatestRowImageCount = $lastRow.find('.sc-LzMDr.gNjBec').length;
-
-        // Assert that the number of rows has increased by 1 or the number of images in the latest row has increased by 1
-        if (newRowCount > initialRowCount) {
-          expect(newRowCount).to.equal(initialRowCount + 1);
-        } else {
-          expect(newLatestRowImageCount).to.equal(initialLatestRowImageCount + 1);
-        }
-      });
+      // Assert that the number of images has increased by 1
+      expect(newImageCount).to.equal(initialImageCount + 1);
+      cy.log('Image count increased by 1 as expected.');
     });
   });
+});
+
+afterEach(() => {
+  // Teardown step to delete the newly created image
+  cy.xpath('(//button[@type="button"])[10]').click();
+  cy.xpath('//a[@data-testid="projects__actions__delete-photo-link"]').click({ force: true });
+  cy.xpath('//button[@color="destroy"]').click({ force: true });
 });
